@@ -1,9 +1,8 @@
 import streamlit as st
-from ingestion import ingest_documents, ingest_report_examples
+from ingestion import ingest_documents, ingest_report_examples, upload_pdf_to_supabase
 from chat import get_qa_chain
 from report import generate_report
 import os
-
 
 st.set_page_config(page_title="FireGPT - Prévention Incendie", layout="wide")
 st.title("🔥 Assistant Prévention Incendie Belgique")
@@ -22,11 +21,13 @@ uploaded_files = st.sidebar.file_uploader(
 
 # 2. Sauvegarde dans data/documents/
 if uploaded_files:
+    count = 0
     for file in uploaded_files:
-        file_path = os.path.join("data/documents", file.name)
-        with open(file_path, "wb") as f:
-            f.write(file.read())
-    st.sidebar.success(f"{len(uploaded_files)} fichier(s) ajouté(s).")
+        count += upload_pdf_to_supabase(file)
+    if count == 0:
+        st.sidebar.warning("Ces documents sont déjà intégrés")
+    else:
+        st.sidebar.success(f"{count} fichier(s) ajouté(s).")
     
     
 if st.sidebar.button("Intégration des PDF"):
